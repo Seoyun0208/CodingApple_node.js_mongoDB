@@ -44,9 +44,15 @@ app.get('/list', function(req, res){
 // * add
 app.post('/add', function(req, res){
     res.send('전송완료');
+
+    // 게시물마다 번호를 달아 저장하기
+    db.collection('counter').findOne({name : '총게시물개수'}, function(err, result){
+        // console.log(result.totalPosts);
+        var totalPosts = result.totalPosts;
+        db.collection('post').insertOne({_id : totalPosts + 1, 할일: req.body.content, 마감일 : req.body.date}, function(err, result){
+            console.log('데이터 저장 완료!')
+        });
+    });
     
-    db.collection('post').insertOne({할일: req.body.content, 마감일 : req.body.date}, function(err, result){
-        console.log('데이터 저장 완료!')
-    })
 })
 
