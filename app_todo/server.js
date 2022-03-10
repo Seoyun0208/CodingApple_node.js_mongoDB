@@ -44,7 +44,7 @@ app.get('/list', function(req, res){
 // * add
 // 누군가가 폼에서 /add 로 POST 요청을 하면
 app.post('/add', function(req, res){
-    res.send('전송완료');
+    res.send('전송 완료');
 
     // 게시물마다 번호를 달아 저장하기
     // DB.counter 내에서 '총게시물개수'를 찾아서
@@ -65,5 +65,11 @@ app.post('/add', function(req, res){
         });
     });
     
+})
+
+// * delete
+app.delete('/delete', function(req, res){
+    // DB 에서 게시글 삭제하기
+    res.send('삭제 완료')
 })
 
