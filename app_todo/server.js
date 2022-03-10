@@ -68,6 +68,7 @@ app.post('/add', function(req, res){
     
 })
 
+
 // * delete
 // 누군가가 삭제 버튼을 클릭하여 /delete 로 DELETE 요청을 하면
 app.delete('/delete', function(req, res){
@@ -79,3 +80,12 @@ app.delete('/delete', function(req, res){
     })
 })
 
+
+// * detail
+app.get('/detail/:id', function(req, res){
+    req.params.id = parseInt(req.params.id);
+    db.collection('post').findOne({_id : req.params.id}, function(err, result){
+        console.log(result);
+        res.render('detail.ejs', {detail : result});
+    })
+});
