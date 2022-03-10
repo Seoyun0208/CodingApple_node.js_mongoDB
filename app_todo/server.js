@@ -3,6 +3,7 @@ const app = express();
 app.use(express.urlencoded({extended: true}));
 const MongoClient = require('mongodb').MongoClient;
 app.set('view engine', 'ejs');
+app.use('/public', express.static('public')); // static 파일 보관을 목적으로 public 폴더를 사용하겠다는 의미
 
 var db;
 
@@ -20,13 +21,14 @@ MongoClient.connect('mongodb+srv://admin:qwer1234@cluster0.e8wvg.mongodb.net/myF
 
 // ! Home
 app.get('/', function(req, res){
-    res.sendFile( __dirname + '/index.html');
+    // res.sendFile( __dirname + '/index.html');
+    res.render('index.ejs')
 });
 
 
 // ! Write
 app.get('/write', function(req, res){
-    res.sendFile(__dirname + '/write.html');
+    res.render('write.ejs')
 });
 
 
