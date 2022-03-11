@@ -117,3 +117,65 @@ app.put('/edit', function(req, res){
         res.redirect('/list') 
     })
 })
+
+
+
+
+// ! Session 방식 로그인 기능 구현
+const passport = require('passport');
+const localStrategy = require('passport-local').Strategy; // 인증하는 방법을 Strategy 라고 지칭한다.
+const session = require('express-session');
+
+app.use(session({secret : '비밀코드', resave : true, saveUninitialized : false}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.get('/login', function(req, res){
+    res.render('login.ejs');
+})
+
+app.post('/login', passport.authenticate('local', {
+    failureRedirect : '/fail' // login 을 실패하면 /fail 경로로 이동한다.
+}), function(req, res){
+    res.redirect('/'); // login 을 성공하면 / 경로로 이동한다.
+})
+
+
+// * 로그인 검사
+passport.use(new localStrategy({
+    usernameField : 'id', // name 이 id 인 input 이 usernameField 이다.
+    passwordField : 'pw', // name 이 pw 인 input 이 passwordField 이다.
+    session : true, // session 정보를 저장한다.
+    passReqToCallback : false, // 아이디,비밀번호 외 다른 정보를 검증할 경우 true 로 작성, 콜백함수에 req 파라미터를 넣어준다.
+}, function(inputId, inputPw, done){
+
+    console.log(inputId, inputPw); // 사용자가 입력한 아이디, 비밀번호 확인
+
+    // db.collection 중 login 에서 id 가 inputId 와 일치하는 데이터를 찾으면
+    db.collection('login').findOne({id : inputId}, function(err, result){
+        if (err) return done(err);
+
+        // result 에 아무런 값이 담겨있지 않다면(DB 에 아이디가 없으면)
+        if (!result) return done(null, false, {message : '존재하지 않는 아이디입니다.'});
+
+        // result 에 값이 담겨 있다면(DB 에 아이디가 있다면)
+        // inputPw 와 result 에 담겨있는 pw 가 일치하는지 확인하기
+        if (inputPw == result.pw) {
+            return done(null, result);
+        } else {
+            return done(null, false, {message : '비밀번호가 다릅니다.'})
+        }
+    })
+}));
+
+
+// * 로그인 세션 유지
+// id 를 이용하여 세션 저장 및 쿠키 발행 (로그인 성공 시)
+passport.serializeUser(function(user, done){
+    done(null, user.id);
+});
+
+// 특정 세션 데이터를 가진 사람을 DB 에서 검색 (마이페이지 접속 시)
+passport.deserializeUser(function(id, done){
+    done(null, {})
+});
