@@ -140,6 +140,20 @@ app.post('/login', passport.authenticate('local', {
     res.redirect('/'); // login 을 성공하면 / 경로로 이동한다.
 })
 
+app.get('/mypage', doLogin, function(req, res){
+    // console.log(req.user)
+    res.render('mypage.ejs', {user : req.user});
+})
+
+function doLogin(req, res, next){
+    // 로그인을 한 상태라면
+    if (req.user){
+        next(); // 통과한다.
+    } else {
+        res.send("로그인이 필요합니다.");
+    }
+}
+
 
 // * 로그인 검사
 passport.use(new localStrategy({
@@ -149,7 +163,7 @@ passport.use(new localStrategy({
     passReqToCallback : false, // 아이디,비밀번호 외 다른 정보를 검증할 경우 true 로 작성, 콜백함수에 req 파라미터를 넣어준다.
 }, function(inputId, inputPw, done){
 
-    console.log(inputId, inputPw); // 사용자가 입력한 아이디, 비밀번호 확인
+    //console.log(inputId, inputPw); // 사용자가 입력한 아이디, 비밀번호 확인
 
     // db.collection 중 login 에서 id 가 inputId 와 일치하는 데이터를 찾으면
     db.collection('login').findOne({id : inputId}, function(err, result){
@@ -176,6 +190,9 @@ passport.serializeUser(function(user, done){
 });
 
 // 특정 세션 데이터를 가진 사람을 DB 에서 검색 (마이페이지 접속 시)
-passport.deserializeUser(function(id, done){
-    done(null, {})
+passport.deserializeUser(function(userId, done){
+    // DB 에서 user.id 로 사용자를 검색한 후 사용자 정보를 찾아서 전송한다.
+    db.collection('login').findOne({id : userId}, function(err, result){
+        done(null, result);
+    })
 });
