@@ -120,7 +120,14 @@ app.put('/edit', function(req, res){
 })
 
 
-
+// * search
+app.get('/search', function(req, res){
+    console.log(req.query.value);
+    db.collection('post').find({할일: req.query.value}).toArray(function(err, result){
+        console.log(result);
+        res.render('search.ejs', {post : result});
+    })
+})
 
 // ! Session 방식 로그인 기능 구현
 const passport = require('passport');
