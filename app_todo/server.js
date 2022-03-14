@@ -123,9 +123,29 @@ app.put('/edit', function(req, res){
 // * search
 app.get('/search', function(req, res){
     console.log(req.query.value);
-    db.collection('post').find({할일: req.query.value}).toArray(function(err, result){
+    let condition = [
+        {
+            $search : {
+                index : 'todoSearch',
+                text : {
+                    query : req.query.value,
+                    path: '할일' // 할일과 마감일 둘 다 찾고 싶으면 ['할일', '마감일']
+                }
+            }
+        },
+        {
+            $sort : { _id : 1 } // 1 은 오름차순, -1 은 내림차순
+        },
+        {
+            $limit : 10 // 가져올 데이터 개수 제한
+        },
+        // {
+        //     $project : {할일 : 1, _id: 0, score : {$meta: 'searchScore'}} // 원하는 항목만 보여줌! 0 은 안 보여주기, 1 은 보여주기
+        // }
+    ];
+    db.collection('post').aggregate(condition).toArray(function(err, result){
         console.log(result);
-        res.render('search.ejs', {post : result});
+        res.render('search.ejs', {searchPost : result});
     })
 })
 
