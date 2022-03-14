@@ -6,15 +6,16 @@ const methodeOverride = require('method-override');
 app.use(methodeOverride('_method'));
 app.set('view engine', 'ejs');
 app.use('/public', express.static('public')); // static 파일 보관을 목적으로 public 폴더를 사용하겠다는 의미
+require('dotenv').config();
 
 var db;
 
-MongoClient.connect('mongodb+srv://admin:qwer1234@cluster0.e8wvg.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', function(err, client){
+MongoClient.connect(process.env.DB_URL, function(err, client){
     if(err) {return console.log(err)};
 
     db = client.db('app_todo');
 
-    app.listen(8080, function(){
+    app.listen(process.env.PORT, function(){
         console.log('listening on 8080');
     });
 
