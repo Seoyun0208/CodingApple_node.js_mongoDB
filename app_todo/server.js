@@ -46,46 +46,6 @@ app.get('/list', function(req, res){
 });
 
 
-// * add
-// 누군가가 폼에서 /add 로 POST 요청을 하면
-app.post('/add', function(req, res){
-
-    // 게시물마다 번호를 달아 저장하기
-    // DB.counter 내에서 '총게시물개수'를 찾아서
-    db.collection('counter').findOne({name : '총게시물개수'}, function(err, result){
-        // console.log(result.totalPosts);
-
-        // '총게시물개수' 의 totalPosts 값을 totalPosts 변수에 저장
-        var totalPosts = result.totalPosts;
-
-        // 이제 DB.post 에 번호를 단 새로운 게시물을 추가
-        db.collection('post').insertOne({_id : totalPosts + 1, 할일: req.body.content, 마감일 : req.body.date}, function(err, result){
-            console.log('게시물 저장 완료!');
-
-            // DB.counter 의 '총게시물개수' 의 totalPosts 값을 1씩 증가
-            db.collection('counter').updateOne({name : '총게시물개수'},{ $inc : {totalPosts: 1} }, function(err, result){
-                console.log('총 게시물 개수 업데이트 완료!');
-            });
-        });
-    });
-
-    // res.send('게시물 추가 완료');
-    res.redirect('/list') 
-})
-
-
-// * delete
-// 누군가가 삭제 버튼을 클릭하여 /delete 로 DELETE 요청을 하면
-app.delete('/delete', function(req, res){
-    // DB 에서 게시글 삭제하기
-    req.body._id = parseInt(req.body._id);
-    db.collection('post').deleteOne(req.body, function(err, result){
-        console.log('게시물 삭제 완료');
-        res.status(200).send({message : '성공했습니다.'});
-    })
-})
-
-
 // * detail
 // 누군가가 더보기 버튼을 클릭하여 /detail 로 GET 요청을 하면
 app.get('/detail/:id', function(req, res){
@@ -224,3 +184,74 @@ passport.deserializeUser(function(userId, done){
         done(null, result);
     })
 });
+
+
+// ! 회원가입 기능 구현
+app.get('/register', function(req, res){
+    res.render('register.ejs');
+})
+
+app.post('/register', function(req, res){
+    db.collection('login').insertOne({id : req.body.id, pw: req.body.pw}, function(err, result){
+        res.redirect('/login');
+    })
+})
+
+
+// * add (작성자 구별 업데이트로 인한 코드 위치 조정)
+// 누군가가 폼에서 /add 로 POST 요청을 하면
+app.post('/add', function(req, res){
+
+        // 게시물마다 번호를 달아 저장하기
+        // DB.counter 내에서 '총게시물개수'를 찾아서
+        db.collection('counter').findOne({name : '총게시물개수'}, function(err, result){
+            // console.log(result.totalPosts);
+    
+            // '총게시물개수' 의 totalPosts 값을 totalPosts 변수에 저장
+            var totalPosts = result.totalPosts;
+    
+            // 전송받아 저장할 데이터들을 submitData 변수에 저장
+            var submitData = {
+                _id : totalPosts + 1, 
+                할일: req.body.content, 
+                마감일 : req.body.date, 
+                작성자: req.user._id
+            }
+    
+            // 이제 DB.post 에 번호를 단 새로운 게시물을 추가
+            db.collection('post').insertOne(submitData, function(err, result){
+                console.log('게시물 저장 완료!');
+    
+                // DB.counter 의 '총게시물개수' 의 totalPosts 값을 1씩 증가
+                db.collection('counter').updateOne({name : '총게시물개수'},{ $inc : {totalPosts: 1} }, function(err, result){
+                    console.log('총 게시물 개수 업데이트 완료!');
+                });
+            });
+        });
+    
+        // res.send('게시물 추가 완료');
+        res.redirect('/list') 
+
+})
+
+
+// * delete
+// 누군가가 삭제 버튼을 클릭하여 /delete 로 DELETE 요청을 하면
+app.delete('/delete', function(req, res){
+    // DB 에서 게시글 삭제하기
+    req.body._id = parseInt(req.body._id);
+
+    var delData = {_id : req.body._id}
+
+    console.log(req.body);
+
+    if (req.body.작성자 == req.user._id) {
+        db.collection('post').deleteOne(delData, function(err, result){
+            console.log('게시물 삭제 완료');
+            res.status(200).send({message : '성공했습니다.'});
+        })
+    } else {
+        console.log('게시물 삭제 실패');
+        res.status(400).send({message : '실패했습니다.'});
+    }
+})

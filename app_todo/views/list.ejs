@@ -8,7 +8,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <link rel="stylesheet" href="../public/main.css">
-    <title>검색 기능 만들기</title>
+    <title>회원 기능을 포함한 게시판 기능 만들기</title>
 </head>
 
 <body>
@@ -29,7 +29,7 @@
           <p class="mb-2" style="font-size: 18px;">할일 : <%= post[i].할일 %></p>
           <p class="mb-2" style="font-size: 16px;">마감일 : <%= post[i].마감일 %></p>
           <button class="btn btn-primary edit"><a style="color: white; text-decoration: none;" href="/edit/<%= post[i]._id %>">수정</a></button>
-          <button class="btn btn-danger delete" data-id="<%= post[i]._id %>">삭제</button>
+          <button class="btn btn-danger delete" data-id="<%= post[i]._id %>" data-writer="<%= post[i].작성자 %>">삭제</button>
         </li>
         <% } %>
       </ul>
@@ -41,12 +41,13 @@
       $('.delete').click(function(e){
 
         let postNum = e.target.dataset.id;
+        let writer = e.target.dataset.writer;
         let clicked = $(this);
 
         $.ajax({
           method : 'DELETE',
           url : '/delete',
-          data : {_id : postNum}
+          data : {_id : postNum, 작성자 : writer}
         }).done(function(result){
           // AJAX 성공할 경우 실행할 코드
           console.log('성공했습니다.');
