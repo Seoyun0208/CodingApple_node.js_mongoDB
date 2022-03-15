@@ -255,3 +255,42 @@ app.delete('/delete', function(req, res){
         res.status(400).send({message : '실패했습니다.'});
     }
 })
+
+
+// * upload
+let multer = require('multer');
+const { strategies } = require('passport/lib');
+var path = require('path');
+
+var storage = multer.diskStorage({
+    destination : function(req, file, cb){
+        cb(null, './public/images')
+    },
+    filename : function(req, file, cb){
+        cb(null, file.originalname)
+    },
+    filefilter : function(req, file, cb){
+        var ext = path.extname(file.originalname);
+        if(ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg'){
+            return cb(new Error('PNG, JPG 파일만 업로드 가능합니다.'));
+        }
+        cb(null, true)
+    },
+    limits : {
+        fileSize: 1024 * 1024
+    }
+});
+
+var upload = multer({storage : storage});
+
+app.get('/upload', function(req, res){
+    res.render('upload.ejs')
+})
+
+app.post('/upload', upload.single('image'), function(req, res){
+    res.send('파일 업로드 완료')
+});
+
+app.get('/images/:img', function(req, res){
+    res.sendFile(__dirname + '/public/images/' + req.params.img)
+})
