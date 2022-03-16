@@ -294,3 +294,27 @@ app.post('/upload', upload.single('image'), function(req, res){
 app.get('/images/:img', function(req, res){
     res.sendFile(__dirname + '/public/images/' + req.params.img)
 })
+
+
+// * chatroom
+const {ObjectId} = require('mongodb');
+
+app.post('/chatroom', doLogin, function(req, res){
+
+    let saveData = {
+        title : parseInt(req.body.글번호),
+        members : [ObjectId(req.body.작성자), req.user._id], // 글작성자와 채팅요청자
+        date : new Date() // 현재 날짜
+    }
+
+    db.collection('chatroom').insertOne(saveData).then((result)=>{
+        res.send('채팅방 개설 완료')
+    })
+})
+
+app.get('/chat', doLogin, function(req, res){
+
+    db.collection('chatroom').find({members : req.user._id}).toArray().then((result)=>{
+        res.render('chat.ejs', {data : result})
+    })
+})
