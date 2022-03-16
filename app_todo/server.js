@@ -302,19 +302,42 @@ const {ObjectId} = require('mongodb');
 app.post('/chatroom', doLogin, function(req, res){
 
     let saveData = {
-        title : parseInt(req.body.글번호),
+        post : parseInt(req.body.글번호),
+        title : req.body.할일,
         members : [ObjectId(req.body.작성자), req.user._id], // 글작성자와 채팅요청자
         date : new Date() // 현재 날짜
     }
 
-    db.collection('chatroom').insertOne(saveData).then((result)=>{
+    db.collection('chatroom').insertOne(saveData).then(()=>{
         res.send('채팅방 개설 완료')
     })
 })
 
+
+
+// * chat
 app.get('/chat', doLogin, function(req, res){
 
     db.collection('chatroom').find({members : req.user._id}).toArray().then((result)=>{
         res.render('chat.ejs', {data : result})
+    })
+})
+
+
+// * message
+app.post('/message', doLogin, function(req, res){
+
+    console.log(req.body);
+
+    let saveData = {
+        parent: req.body.parent,
+        content: req.body.content,
+        userid : req.user._id,
+        date: new Date()
+    }
+
+    db.collection('message').insertOne(saveData).then(()=>{
+        console.log('데이터 저장 완료');
+        res.send('데이터 저장 완료');
     })
 })
