@@ -341,3 +341,31 @@ app.post('/message', doLogin, function(req, res){
         res.send('데이터 저장 완료');
     })
 })
+
+
+// * communication
+app.get('/message/:id', doLogin, function(req, res){
+
+    res.writeHead(200, {
+        'Connection' : 'keep-alive',
+        'Content-Type' : 'text/event-stream',
+        'Cache-Control' : 'no-cache'
+    })
+
+    db.collection('message').find({parent : req.params.id}).toArray().then((result)=>{
+        res.write('event: test\n')
+        res.write(`data: ${JSON.stringify(result)}\n\n`)
+    });
+
+    const pipeline = [
+        { $match: { 'fullDocument.parent' : req.params.id } } // fullDocument 꼭 붙여주기!
+    ];
+
+    const collection = db.collection('message');
+    const changeStream = collection.watch(pipeline); // .watch() 함수는 실시간으로 확인해주는 역할
+    changeStream.on('change', (result)=>{
+        console.log(result.fullDocument);
+        res.write('event: test\n')
+        res.write(`data: ${JSON.stringify([result.fullDocument])}\n\n`);
+    })
+})
