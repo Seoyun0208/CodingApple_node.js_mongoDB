@@ -138,7 +138,12 @@ function doLogin(req, res, next){
     if (req.user){
         next(); // 통과한다.
     } else {
-        res.send("로그인이 필요합니다.");
+        // res.send("로그인이 필요합니다.");
+
+        res.writeHead(200, {'Content-Type' : 'text/html; charset=utf-8'});
+
+        res.write("<script>alert('로그인이 필요합니다.')</script>");
+        res.write("<script>window.location.replace('/login')</script>");
     }
 }
 
